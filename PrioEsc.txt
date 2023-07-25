@@ -1,0 +1,69 @@
+program LEEscritura;
+monitor le;
+export abrirLectura, cerrarLectura, abrirEscritura, cerrarEscritura;
+var
+  nl: integer;
+  escribiendo: boolean;
+  lector, escritor: condition;
+
+  procedure abrirLectura;
+  begin
+    if (escribiendo) or not empty(escritor) then delay(lector);
+    nl := nl + 1;
+    resume(lector);
+  end;
+
+  procedure cerrarLectura;
+  begin
+    nl := nl - 1;
+    if (nl = 0) then resume(escritor);
+  end;
+
+  procedure abrirEscritura;
+  begin
+    if (nl <> 0) or escribiendo then delay(escritor);
+    escribiendo := true;
+  end;
+
+  procedure cerrarEscritura;
+  begin
+    escribiendo := false;
+    if not empty(lector) then resume(lector)
+    else resume(escritor);
+  end;
+
+begin
+  nl := 0;
+  escribiendo := false;
+end;
+
+process type lector;
+begin
+	repeat
+	  le.abrirLectura;
+	  writeln('Leer');
+	  le.cerrarLectura;
+  	forever
+end;
+
+process type escritor;
+begin
+	repeat
+	  le.abrirEscritura;
+	  writeln('Escribir');
+	  le.cerrarEscritura;
+  	forever
+end;
+
+var i: integer;
+	l: array[0..2] of lector;
+	e: array[0..2] of escritor;
+begin
+	cobegin
+    	for i := 0 to 2 do
+		begin
+			l[i];
+			e[i];
+		end;
+	coend;
+end.

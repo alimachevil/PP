@@ -1,0 +1,59 @@
+program FilosofosComensales;
+
+monitor comidaFilosofos;
+	export cogerPalillos, soltarPalillos;
+	const N = 5;
+	var estado: array[0..4] of (pensando, comiendo, hambriento);
+		dormir: array[0..4] of condition;
+		i: integer;
+	
+	procedure test(k: integer);
+	begin
+		(Para poder comer, ninguno de los filosofos de los lados)
+		(*puede estar comiendo                                   *)
+		if (estado[(k+N-1) mod N] <> comiendo) and
+		   (estado[(k+1) mod N] <> comiendo) then
+		begin (Si puede comer desbloquea al correspondiente filósofo)
+			estado[k] := comiendo;
+			resume(dormir[k]);
+		end; 
+	end;
+	
+	procedure cogerPalillos(i: integer);
+	begin
+		estado[i] := hambriento; (*Avisa de que quiere comer	*)
+		test(i);				 (*Comprueba si puede comer		*)
+								 (Si no puede comer se bloquea.)
+		if estado[i] <> comiendo then delay(dormir[i])
+	end;
+	
+	procedure soltarPalillos(i: integer);
+	begin
+		estado[i] := hambriento; (*Deja de comer e intenta bloquear 	   *)
+								 (a los filósofos que tiene a ambos lados.)
+		test((i+4) mod N);
+		test((i+1) mod N)
+	end;
+	
+begin
+	for i := 0 to N-1 do
+		estado[i] := pensando;
+end;
+
+process type filosofo(i: integer);
+begin
+		writeln('El filosofo ', i+1, ' esta pensando');
+		comidaFilosofos.cogerPalillos(i);
+		writeln('El filosofo ', i+1, ' esta comiendo');
+		comidaFilosofos.soltarPalillos(i);
+		writeln('El filosofo ', i+1, ' termino de comer');
+end;
+
+var i: integer;
+	F: array[0..4] of filosofo;
+begin
+	cobegin
+		for i := 0 to 4 do
+			F[i](i);
+	coend;
+end.

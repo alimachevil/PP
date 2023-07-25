@@ -1,0 +1,59 @@
+program ProdConsMon1;
+monitor buffer;
+export insertar,sacar;
+const 
+		tb=5;
+		mb=4;
+	var
+		recurso:array[0..mb] of integer;
+		tam,frente,cola: integer;
+		nolleno,novacio:condition;
+procedure insertar(i:integer);
+	begin
+		if(tam>=tb) then delay(nolleno);
+		recurso[cola]:=i;
+		tam:=tam+1;
+		cola:=(cola+1) mod tb;
+		resume(novacio);
+	end;
+procedure sacar(var i:integer);
+	begin
+		if(tam= 0) then delay(novacio);
+		i:=recurso[frente];
+		tam:=tam-1;
+		frente:=(frente+1)mod tb;
+		resume(nolleno);
+	end;
+begin
+	tam:=0;
+	frente:=0;
+	cola:=0;
+end;
+
+process productor ; 		
+var local:integer;			
+begin 
+	repeat
+		local:=local+1;
+		
+		buffer.insertar(local);
+		writeln('Se produce el elemento ',local);
+	forever
+end ; 
+
+process consumidor;
+var i:integer;
+begin
+	repeat
+		buffer.sacar(i);
+		writeln('Se consume el elemento ',i);
+		
+	forever
+end;
+
+begin
+	cobegin 
+		productor; 
+		consumidor; 
+	coend ;
+end.
